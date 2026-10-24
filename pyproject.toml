@@ -8,12 +8,18 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "fastapi>=0.162.0",
+    "google-generativeai>=0.8.6",
     "pydantic>=2.14.1",
 ]
 
 [project.scripts]
-receipt-2-sql = "receipt_2_sql:main"
+receipt-2-sql = "main:main"
 
 [build-system]
 requires = ["uv_build>=0.13.5,<0.14.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+module-name = "app"

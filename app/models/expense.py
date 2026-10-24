@@ -52,3 +52,7 @@ class Expense(BaseModel):
                 f"Today is {date.today()}."
             )
         return v
+
+
+class ExtractRequest(BaseModel):
+    raw_text: str
