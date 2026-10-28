@@ -1,7 +1,7 @@
 from decimal import Decimal
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import date
 
 
@@ -53,6 +53,13 @@ class Expense(BaseModel):
             )
         return v
 
+   
+    @model_validator(mode="after")
+    def set_needs_review_flag(self) -> "Expense":
+        """Check whether object returned needs HIL"""
+        conditions=[self.confidence < 0.70, self.category== ExpenseCategory.OTHER, self.vendor== None]
+        
+        if any(conditions):
+            self.needs_review= True
 
-class ExtractRequest(BaseModel):
-    raw_text: str
+        return self
