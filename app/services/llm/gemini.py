@@ -1,5 +1,7 @@
 # app/services/llm/gemini.py
 
+import base64
+
 from pydantic import ValidationError
 
 import google.generativeai as genai
@@ -68,4 +70,43 @@ class GeminiClient:
             # then raise a ValueError explaining the API call failed
             logger.error(f"Exception occured: {e}")
             raise ValueError("There was error in response retreival")
+
+
+    async def extract_expense_from_image(self, image_data: str, mime_type: str) -> Expense:
+        decoded = base64.b64decode(image_data)
+
+        image_part = {"mime_type": mime_type, "data": decoded}
+        text_part = "Extract the expense details from this receipt image."
+
+        model = genai.GenerativeModel(
+            model_name="gemini-3.8-flash",
+            generation_config=genai.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.1,
+                max_output_tokens=500
+            ),
+            system_instruction=build_prompt()
+        )
+
+        try:
             
+            response= await model.generate_content_async([image_part, text_part])
+           
+            raw_json= json.loads(response.text)
+           
+            expense= Expense(**raw_json)
+
+            return expense
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Decoding JSON failed: {e} | Response: {response.text[:200]}")
+            raise ValueError("JSON data is invalid")
+
+        except ValidationError as e:
+            logger.error(f"Pydantic validation failed: {e}")
+            raise ValueError("Data failed to pass pydantic validation")
+
+        except Exception as e:
+            logger.error(f"Exception occurred: {e}")
+            raise ValueError("There was an error in response retrieval")
+                

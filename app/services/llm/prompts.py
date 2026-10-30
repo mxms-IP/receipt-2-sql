@@ -81,4 +81,3 @@ OUTPUT: {{"amount": 1200.00, "currency": "PKR",
 "raw_input": "Mobilink ka bill aya 1200 aaj"}}
 """
 
-
