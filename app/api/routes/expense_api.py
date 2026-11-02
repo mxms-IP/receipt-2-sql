@@ -6,12 +6,16 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.models.requests import ExtractRequest, ImageExtractRequest
 from app.models.expense import Expense
 from app.services.llm.gemini import GeminiClient
+from app.services.audio.whisper import WhisperClient
+import tempfile
+
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
 client = GeminiClient()
+whisper = WhisperClient()
 
-ALLOWED_MIME_TYPES = ["image/jpeg","image/jpg", "image/png", "image/webp"]
+ALLOWED_MIME_TYPES = ["image/jpeg","image/jpg", "image/png", "image/webp", "audio/mp3", "audio/wav", "audio/ogg", "audio/m4a"]
 MAX_FILE_SIZE = 5 * 1024 * 1024
 
 
@@ -44,6 +48,29 @@ async def extract_expense_from_image(file: UploadFile = File(...)):
     encoded_string = base64.b64encode(content).decode("utf-8")
     result = await client.extract_expense_from_image(encoded_string, file.content_type)
     return result
+
+@router.post("/extract_from_audio")
+async def extract_expense_from_audio(file: UploadFile = File(...)):
+
+    contents= await file.read() #gets bytes
+
+    if file.content_type not in ALLOWED_MIME_TYPES:
+            raise HTTPException(status_code=400, detail="Unsupported format. Supported formats are mp3, wav, ogg, m4a.")
+        
+
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+        tmp.write(contents)
+        tmp_path = tmp.name 
+
+    content_text= whisper.transcribe(tmp_path) #returns transcribed text
+
+    response=   await client.extract_expense(content_text)
+
+    return response
+
+    
+
+    #get the audio call whisper transcribe, before that check fro valid allowedtypes, then once transcribed send to extract_from_text function of geminiclient
 
 
 

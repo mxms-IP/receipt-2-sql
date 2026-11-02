@@ -9,7 +9,9 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.162.0",
+    "ffmpeg-python>=0.2.0",
     "google-generativeai>=0.8.6",
+    "openai-whisper>=20250625",
     "pydantic>=2.14.1",
     "python-multipart>=0.0.32",
 ]
