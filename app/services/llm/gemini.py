@@ -19,7 +19,22 @@ class GeminiClient:
     
     def __init__(self):
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        logger.info("GeminiClient ready")
+
+    def _build_model(self,  input_type: str = "text"):
+
+        model = genai.GenerativeModel(
+                model_name=settings.PRIMARY_MODEL,
+                generation_config=genai.GenerationConfig(
+                    response_mime_type="application/json",
+                    temperature=0.1,
+                    max_output_tokens=500
+                ),
+                system_instruction=build_prompt(input_type)
+            )
+
+        return model
+    
+    
 
     async def extract_expense(self, raw_input: str) -> Expense:
         # clean the input
@@ -30,15 +45,7 @@ class GeminiClient:
             raise ValueError("The input is empty. Please enter something before making request")
 
         # rebuild model with fresh prompt
-        model = genai.GenerativeModel(
-            model_name="gemini-3.8-flash",
-            generation_config=genai.GenerationConfig(
-                response_mime_type="application/json",
-                temperature=0.1,
-                max_output_tokens=500
-            ),
-            system_instruction=build_prompt()
-        )
+        model = self._build_model("text")
 
         try:
             # Step 1: send raw_input to gemini, await the response
@@ -78,15 +85,7 @@ class GeminiClient:
         image_part = {"mime_type": mime_type, "data": decoded}
         text_part = "Extract the expense details from this receipt image."
 
-        model = genai.GenerativeModel(
-            model_name="gemini-3.8-flash",
-            generation_config=genai.GenerationConfig(
-                response_mime_type="application/json",
-                temperature=0.1,
-                max_output_tokens=500
-            ),
-            system_instruction=build_prompt()
-        )
+        model = self._build_model("image")
 
         try:
             

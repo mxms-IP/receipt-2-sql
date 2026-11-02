@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # --- AI Model Settings ---
     GEMINI_API_KEY: str               # Required, no default
-    PRIMARY_MODEL: str = "gemini-2.0-flash"
+    PRIMARY_MODEL: str = "gemini-3.8-flash"
     FALLBACK_MODEL: str = "claude-sonnet-4-6"  # For complex tasks later
 
     # --- App Settings ---
