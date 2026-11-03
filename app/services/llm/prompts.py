@@ -83,7 +83,7 @@ def build_prompt(input_type: str = "text") -> str:
    
    if input_type == "image":
          image_instructions = """
-        ## Image-Specific Instructions
+        ## Image-Specific Instructions:
          - If the image is blurry or low resolution, use confidence range 0.50 to 0.64 and set needs_review to true
          - If parts of the receipt are shadowed or cut off, use confidence range 0.65 to 0.84 and set needs_review to true
          - If the image is clear and all fields are readable, use confidence range 0.85 to 0.95

@@ -3,11 +3,15 @@
 import base64
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from app.dependencies import get_db
 from app.models.requests import ExtractRequest, ImageExtractRequest
 from app.models.expense import Expense
 from app.services.llm.gemini import GeminiClient
 from app.services.audio.whisper import WhisperClient
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
 import tempfile
+import os
 
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
@@ -15,12 +19,16 @@ router = APIRouter(prefix="/expenses", tags=["expenses"])
 client = GeminiClient()
 whisper = WhisperClient()
 
-ALLOWED_MIME_TYPES = ["image/jpeg","image/jpg", "image/png", "image/webp", "audio/mp3", "audio/wav", "audio/ogg", "audio/m4a"]
+ALLOWED_MIME_TYPES = {
+    "image/jpeg", "image/jpg", "image/png", "image/webp",
+    "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/x-m4a"
+}
+
 MAX_FILE_SIZE = 5 * 1024 * 1024
 
 
 @router.post("/extract_from_text")
-async def extract_expense(request: ExtractRequest) -> Expense:
+async def extract_expense(request: ExtractRequest, db: AsyncSession = Depends(get_db)) -> Expense:
     # take the raw_text from the request object
     # and pass it to client.extract_expense()
  
@@ -29,7 +37,6 @@ async def extract_expense(request: ExtractRequest) -> Expense:
 
     return response
 
-#write a api endpoint that takes ExtractRequest but this time in image and feeds LLm
 @router.post("/extract_from_image")
 async def extract_expense_from_image(file: UploadFile = File(...)):
 
@@ -52,19 +59,21 @@ async def extract_expense_from_image(file: UploadFile = File(...)):
 @router.post("/extract_from_audio")
 async def extract_expense_from_audio(file: UploadFile = File(...)):
 
-    contents= await file.read() #gets bytes
-
+    
     if file.content_type not in ALLOWED_MIME_TYPES:
             raise HTTPException(status_code=400, detail="Unsupported format. Supported formats are mp3, wav, ogg, m4a.")
         
 
+    contents= await file.read() #gets bytes
     with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
         tmp.write(contents)
         tmp_path = tmp.name 
 
-    content_text= whisper.transcribe(tmp_path) #returns transcribed text
+    content_text= await whisper.transcribe(tmp_path) #returns transcribed text
+    
+    response=  await client.extract_expense(content_text)
 
-    response=   await client.extract_expense(content_text)
+    os.remove(tmp_path)
 
     return response
 

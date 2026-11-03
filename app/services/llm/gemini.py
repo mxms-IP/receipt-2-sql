@@ -4,7 +4,8 @@ import base64
 
 from pydantic import ValidationError
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import json
 import logging
 from app.models.expense import Expense
@@ -18,22 +19,17 @@ settings = get_settings()
 class GeminiClient:
     
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
+        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-    def _build_model(self,  input_type: str = "text"):
 
-        model = genai.GenerativeModel(
-                model_name=settings.PRIMARY_MODEL,
-                generation_config=genai.GenerationConfig(
-                    response_mime_type="application/json",
-                    temperature=0.1,
-                    max_output_tokens=500
-                ),
-                system_instruction=build_prompt(input_type)
-            )
+    def _build_config(self, input_type: str = "text") -> types.GenerateContentConfig:
 
-        return model
-    
+        return types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.1,
+            max_output_tokens=500,
+            system_instruction=build_prompt(input_type)
+        )
     
 
     async def extract_expense(self, raw_input: str) -> Expense:
@@ -42,14 +38,16 @@ class GeminiClient:
 
         # check if empty, raise ValueError if it is
         if not llm_input:
-            raise ValueError("The input is empty. Please enter something before making request")
-
-        # rebuild model with fresh prompt
-        model = self._build_model("text")
+            raise ValueError("The input is empty. Please enter something before making request")      
 
         try:
+            config = self._build_config("text")
             # Step 1: send raw_input to gemini, await the response
-            response = await model.generate_content_async(llm_input)
+            response = await self.client.aio.models.generate_content(
+                            model=settings.PRIMARY_MODEL,
+                            contents=llm_input,
+                            config=config
+                        )
 
             # Step 2: convert response.text from string to python dictionary
             raw_json = json.loads(response.text)
@@ -82,14 +80,23 @@ class GeminiClient:
     async def extract_expense_from_image(self, image_data: str, mime_type: str) -> Expense:
         decoded = base64.b64decode(image_data)
 
-        image_part = {"mime_type": mime_type, "data": decoded}
+        image_part = types.Part.from_bytes(
+                                data=decoded,
+                                mime_type=mime_type
+                            )
         text_part = "Extract the expense details from this receipt image."
 
-        model = self._build_model("image")
+   
 
         try:
+
+            config = self._build_config("image")
+            response = await self.client.aio.models.generate_content(
+                                        model=settings.PRIMARY_MODEL,
+                                        contents=[image_part, text_part],
+                                        config=config
+                                    )
             
-            response= await model.generate_content_async([image_part, text_part])
            
             raw_json= json.loads(response.text)
            

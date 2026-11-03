@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     PRIMARY_MODEL: str = "gemini-3.8-flash"
     FALLBACK_MODEL: str = "claude-sonnet-4-6"  # For complex tasks later
 
+    # --- Database -----
+    DATABASE_URL: str
+
     # --- App Settings ---
     APP_NAME: str = "AI Expense Tracker"
     DEBUG: bool = False               # Never True in production
