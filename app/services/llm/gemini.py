@@ -69,6 +69,7 @@ class GeminiClient:
             # then raise a ValueError explaining pydantic validation failed
             logger.error(f"Pydantic validation failed: {e}")
             raise ValueError("Data failed to pass pydantic validation")
+        
 
         except Exception as e:
             # log the error

@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     FALLBACK_MODEL: str = "claude-sonnet-4-6"  # For complex tasks later
 
     # --- Database -----
-    DATABASE_URL: str
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:data@localhost:5432/ExpenseDB"
 
     # --- App Settings ---
     APP_NAME: str = "AI Expense Tracker"

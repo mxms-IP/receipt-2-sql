@@ -4,8 +4,10 @@ import base64
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.dependencies import get_db
+from app.models.reponse import ExpenseResponse
 from app.models.requests import ExtractRequest, ImageExtractRequest
 from app.models.expense import Expense
+from app.repositories.ExpenseRepo import ExpenseRepository
 from app.services.llm.gemini import GeminiClient
 from app.services.audio.whisper import WhisperClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,17 +30,23 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 
 
 @router.post("/extract_from_text")
-async def extract_expense(request: ExtractRequest, db: AsyncSession = Depends(get_db)) -> Expense:
+async def extract_expense(request: ExtractRequest, db: AsyncSession = Depends(get_db)) -> ExpenseResponse:
     # take the raw_text from the request object
     # and pass it to client.extract_expense()
  
     raw_input= request.raw_text
-    response=   await client.extract_expense(raw_input)
+    try:
+        llm_response=   await client.extract_expense(raw_input)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
-    return response
+    db_expense= ExpenseRepository(db)
+    db_response= await db_expense.save(llm_response)
+
+    return db_response
 
 @router.post("/extract_from_image")
-async def extract_expense_from_image(file: UploadFile = File(...)):
+async def extract_expense_from_image(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)) -> ExpenseResponse :
 
     content = await file.read()
     # Validation 1: check file.content_type is in ALLOWED_MIME_TYPES
@@ -51,13 +59,20 @@ async def extract_expense_from_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB.")
     
 
-    # Everything below is already done — don't change this part
     encoded_string = base64.b64encode(content).decode("utf-8")
-    result = await client.extract_expense_from_image(encoded_string, file.content_type)
-    return result
+
+    try:
+        llm_response = await client.extract_expense_from_image(encoded_string, file.content_type)
+    except ValueError as e:
+            raise HTTPException(status_code=503, detail=str(e))
+
+    db_expense= ExpenseRepository(db)
+    db_response= await db_expense.save(llm_response)
+
+    return db_response
 
 @router.post("/extract_from_audio")
-async def extract_expense_from_audio(file: UploadFile = File(...)):
+async def extract_expense_from_audio(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)) -> ExpenseResponse :
 
     
     if file.content_type not in ALLOWED_MIME_TYPES:
@@ -70,17 +85,19 @@ async def extract_expense_from_audio(file: UploadFile = File(...)):
         tmp_path = tmp.name 
 
     content_text= await whisper.transcribe(tmp_path) #returns transcribed text
+
+    try:
+        llm_response=  await client.extract_expense(content_text)
+    except ValueError as e:
+            raise HTTPException(status_code=503, detail=str(e))
+    finally:
+        os.remove(tmp_path)
+
+    db_expense= ExpenseRepository(db)
+    db_response= await db_expense.save(llm_response)
+
+   
+    return db_response
+
     
-    response=  await client.extract_expense(content_text)
-
-    os.remove(tmp_path)
-
-    return response
-
-    
-
-    #get the audio call whisper transcribe, before that check fro valid allowedtypes, then once transcribed send to extract_from_text function of geminiclient
-
-
-
 
