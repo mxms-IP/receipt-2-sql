@@ -23,7 +23,9 @@ class ExpenseRepository:
         )
         self.db.add(db_expense)
 
-        expense_response = ExpenseResponse(db_expense)
         await self.db.commit()
+        await self.db.refresh(db_expense)
+        
+        expense_response = ExpenseResponse.model_validate(db_expense)
 
         return expense_response

@@ -1,9 +1,7 @@
 # app/services/llm/gemini.py
 
 import base64
-
 from pydantic import ValidationError
-
 from google import genai
 from google.genai import types
 import json

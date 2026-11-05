@@ -17,12 +17,13 @@ class Settings(BaseSettings):
     """
 
     # --- AI Model Settings ---
-    GEMINI_API_KEY: str               # Required, no default
-    PRIMARY_MODEL: str = "gemini-3.8-flash"
-    FALLBACK_MODEL: str = "claude-sonnet-4-6"  # For complex tasks later
+    GEMINI_API_KEY: str       # Required, no default
+    OPEN_ROUTER_KEY: str
+    PRIMARY_MODEL: str 
+    FALLBACK_MODEL: str       # For complex tasks later
 
     # --- Database -----
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:data@localhost:5432/ExpenseDB"
+    DATABASE_URL: str 
 
     # --- App Settings ---
     APP_NAME: str = "AI Expense Tracker"

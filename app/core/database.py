@@ -36,6 +36,5 @@ class ExpenseDB(Base):
     confidence= Column(Float)
     raw_input= Column(String) 
     needs_review= Column(Boolean)
-    created_at = Column(DateTime, default=default)
-    updated_at = Column(DateTime, default=default, onupdate=default)
+   
 

@@ -15,7 +15,7 @@ class ExpenseResponse(BaseModel):
     vendor: Optional[str]
     date: date
     needs_review: bool
-    created_at: datetime
+    
 
     class Config:
         from_attributes = True
