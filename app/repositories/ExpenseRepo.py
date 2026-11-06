@@ -19,6 +19,7 @@ class ExpenseRepository:
             confidence= expense.confidence,
             raw_input= expense.raw_input,
             needs_review= expense.needs_review
+          
     
         )
         self.db.add(db_expense)

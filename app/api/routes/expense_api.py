@@ -9,6 +9,7 @@ from app.models.requests import ExtractRequest, ImageExtractRequest
 from app.models.expense import Expense
 from app.repositories.ExpenseRepo import ExpenseRepository
 from app.services.llm.gemini import GeminiClient
+from app.services.llm.openrouter import OpenRouterClient
 from app.services.audio.whisper import WhisperClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
@@ -18,7 +19,7 @@ import os
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
-client = GeminiClient()
+client = OpenRouterClient()
 whisper = WhisperClient()
 
 ALLOWED_MIME_TYPES = {

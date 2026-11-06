@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, DateTime, String, Boolean, Float, Numeric, Date
+from sqlalchemy import Column, DateTime, String, Boolean, Float, Numeric, Date, func
 from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime, timezone
 from sqlalchemy.dialects.postgresql import UUID
@@ -28,13 +28,24 @@ class ExpenseDB(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     amount = Column(Numeric)
-    currency= Column(String, default="PKR") 
+    currency = Column(String, default="PKR")
     category = Column(String)
     vendor = Column(String, nullable=True)
     date = Column(Date)
     description = Column(String, nullable=True)
-    confidence= Column(Float)
-    raw_input= Column(String) 
-    needs_review= Column(Boolean)
+    confidence = Column(Float)
+    raw_input = Column(String)
+    needs_review = Column(Boolean)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
    
 

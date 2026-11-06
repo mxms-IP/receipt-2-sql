@@ -10,6 +10,7 @@ wheels/
 .venv
 
 .env
+alembic.ini
 
 # Python bytecode / caches
 __pycache__/
