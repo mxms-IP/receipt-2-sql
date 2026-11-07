@@ -19,7 +19,8 @@ import os
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
-client = OpenRouterClient()
+#client = OpenRouterClient()
+client= GeminiClient()
 whisper = WhisperClient()
 
 ALLOWED_MIME_TYPES = {

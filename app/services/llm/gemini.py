@@ -25,7 +25,7 @@ class GeminiClient:
         return types.GenerateContentConfig(
             response_mime_type="application/json",
             temperature=0.1,
-            max_output_tokens=500,
+            max_output_tokens=1500,
             system_instruction=build_prompt(input_type)
         )
     
@@ -59,7 +59,7 @@ class GeminiClient:
         except json.JSONDecodeError as e:
             # log the error message and the first 200 chars of the bad response
             # then raise a ValueError explaining JSON was invalid
-            logger.error(f"Decoding JSON failed: {e} | Response was: {response.text[:200]}")
+            logger.error(f"Decoding JSON failed: {e} | Response was: {response.text}")
             raise ValueError("JSON data is invalid")
 
         except ValidationError as e:

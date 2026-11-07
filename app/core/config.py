@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str       # Required, no default
     OPEN_ROUTER_KEY: str
     PRIMARY_MODEL: str 
+    SECONDARY_MODEL: str
     FALLBACK_MODEL: str       # For complex tasks later
 
     # --- Database -----
