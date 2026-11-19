@@ -4,7 +4,7 @@ import base64
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.dependencies import get_db
-from app.models.reponse import ExpenseResponse
+from app.models.response import ExpenseResponse
 from app.models.requests import ExtractRequest, ImageExtractRequest
 from app.models.expense import Expense
 from app.repositories.ExpenseRepo import ExpenseRepository

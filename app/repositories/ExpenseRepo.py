@@ -2,7 +2,7 @@ from app.core.database import AsyncSessionLocal, ExpenseDB
 from app.models.expense import Expense
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.reponse import ExpenseResponse
+from app.models.response import ExpenseResponse
 
 class ExpenseRepository:
     def __init__(self, db: AsyncSession):

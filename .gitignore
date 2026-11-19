@@ -1,18 +1,15 @@
-# Python-generated files
+# Python
 __pycache__/
-*.py[oc]
+*.py[cod]
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
-.venv
+.venv/
+venv/
 
+# Env and secrets
 .env
-alembic.ini
 
-# Python bytecode / caches
-__pycache__/
-*.pyc
-*.pyo

@@ -87,10 +87,10 @@ class OpenRouterClient:
             return expense
 
         except json.JSONDecodeError as e:
-                    # log the error message and the first 200 chars of the bad response
-                    # then raise a ValueError explaining JSON was invalid
-                    logger.error(f"Decoding JSON failed: {e} | Response was: {response.text[:200]}")
-                    raise ValueError("JSON data is invalid")
+            # log the error message and the first 200 chars of the bad response
+            # then raise a ValueError explaining JSON was invalid
+            logger.error(f"Decoding JSON failed: {e} | Response was: {response.text[:200]}")
+            raise ValueError("JSON data is invalid")
 
         except ValidationError as e:
             # log the error
@@ -102,14 +102,11 @@ class OpenRouterClient:
             logger.error(f"Network error: {e}")
             raise ValueError("Network request failed")
                 
-
         except Exception as e:
             # log the error
             # then raise a ValueError explaining the API call failed
             logger.error(f"Exception occured: {e}")
             raise ValueError("There was error in response retreival")
-            
-        
        
 
     async def extract_expense_from_image(self, image_data: str, mime_type: str) -> Expense:
@@ -123,7 +120,6 @@ class OpenRouterClient:
                 response = await client.post(OPENROUTER_URL, headers=header, json=payload)
                 if response.status_code != 200:
                     raise ValueError("Response failed")
-
             
                 response_data = response.json()
                 raw_json = response_data["choices"][0]["message"]["content"]
@@ -132,7 +128,6 @@ class OpenRouterClient:
 
                 expense= Expense(**raw_dict)
                 return expense
-                
 
         except json.JSONDecodeError as e:
             # log the error message and the first 200 chars of the bad response
@@ -147,8 +142,8 @@ class OpenRouterClient:
             raise ValueError("Data failed to pass pydantic validation")
         
         except httpx.RequestError as e:
-                    logger.error(f"Network error: {e}")
-                    raise ValueError("Network request failed")
+            logger.error(f"Network error: {e}")
+            raise ValueError("Network request failed")
         
         except Exception as e:
             # log the error
