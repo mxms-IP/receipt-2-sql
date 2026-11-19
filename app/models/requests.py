@@ -18,6 +18,6 @@ class ImageExtractRequest(BaseModel):
             base64.b64decode(v, validate=True)  
             
         except binascii.Error as e:
-            raise ValueError("Error, please upload an image")
+            raise ValueError("Error, please upload an image again")
     
         return v
