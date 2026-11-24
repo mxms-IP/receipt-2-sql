@@ -1,7 +1,8 @@
+from sqlalchemy import select, text
+
 from app.core.database import AsyncSessionLocal, ExpenseDB
 from app.models.expense import Expense
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.models.response import ExpenseResponse
 
 class ExpenseRepository:
@@ -20,7 +21,6 @@ class ExpenseRepository:
             raw_input= expense.raw_input,
             needs_review= expense.needs_review
           
-    
         )
         self.db.add(db_expense)
 
@@ -28,5 +28,58 @@ class ExpenseRepository:
         await self.db.refresh(db_expense)
         
         expense_response = ExpenseResponse.model_validate(db_expense)
+
+        return expense_response
+
+    async def get_needs_review(self) -> list:
+        stmt= text("SELECT * FROM expenses WHERE needs_review = True")
+        response= await self.db.execute(stmt)
+
+        return response.mappings().all()
+            
+
+    async def get_all(self)-> list:
+
+        stmt= text("SELECT * FROM expenses")
+        response= await self.db.execute(stmt)
+
+        return response.mappings().all()
+
+    async def approve(self, expense: ExpenseResponse) -> ExpenseResponse:
+        stmt= text ("""UPDATE expenses SET 
+                                    amount= :amount, 
+                                    currency= :currency, 
+                                    category=:category, 
+                                    vendor = :vendor, 
+                                    date = :date, 
+                                    description = :description, 
+                                    needs_review= false 
+                                WHERE id = :id 
+                                RETURNING id, amount, currency, category, vendor, date, description,needs_review, created_at, updated_at""")
+
+        response = await self.db.execute(stmt,expense.model_dump())
+
+        await self.db.commit()
+
+        row = response.mappings().first()
+        expense_response = ExpenseResponse.model_validate(row) if row else None
+        
+        return expense_response
+
+    async def get_expenseby_id(self, expense_id: str):
+
+        stmt = text("""
+                    SELECT *
+                    FROM expenses 
+                    WHERE id = :expense_id
+                """)
+
+        response= await self.db.execute(stmt,{"expense_id": expense_id})
+        row = response.mappings().first()  # Extracts the row as a dict-like object (or None)
+
+        if row is None:
+            return None
+
+        expense_response = ExpenseResponse.model_validate(row)
 
         return expense_response

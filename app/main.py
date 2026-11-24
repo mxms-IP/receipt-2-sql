@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from app.api.routes.expense_api import router
+from app.api.routes.human_in_loop_api import review_router
 from app.core.database import Base, engine
 
 app = FastAPI(
@@ -13,6 +14,7 @@ app = FastAPI(
 )
 
 app.include_router(router)
+app.include_router(review_router)
 
 @app.get("/home")
 def home():

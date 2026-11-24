@@ -30,6 +30,15 @@ ALLOWED_MIME_TYPES = {
 
 MAX_FILE_SIZE = 5 * 1024 * 1024
 
+@router.get("/get-all-expense")
+async def get_all_expenses(db: AsyncSession = Depends(get_db)):
+
+     db_expense = ExpenseRepository(db)
+
+     response = await db_expense.get_all()
+
+     return response
+
 
 @router.post("/extract_from_text")
 async def extract_expense(request: ExtractRequest, db: AsyncSession = Depends(get_db)) -> ExpenseResponse:

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # AI model settings
     GEMINI_API_KEY: str                       # required
-    PRIMARY_MODEL: str = "gemini-3.5-flash"
+    PRIMARY_MODEL: str = ""
     OPEN_ROUTER_KEY: str = ""                 # only needed for the OpenRouter client
     SECONDARY_MODEL: str = ""                 # reserved for a future fallback chain
     FALLBACK_MODEL: str = ""                  # reserved for a future fallback chain

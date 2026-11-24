@@ -13,9 +13,11 @@ class ExpenseResponse(BaseModel):
     currency: Currency
     category: ExpenseCategory
     vendor: Optional[str]
+    description: Optional[str]
     date: date
     needs_review: bool
     created_at: datetime
+    updated_at: Optional[datetime]
     
 
     class Config:
