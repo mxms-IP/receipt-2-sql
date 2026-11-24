@@ -1,7 +1,11 @@
 import binascii
-
+from decimal import Decimal
+from typing import Optional
+from datetime import date, datetime
 from pydantic import BaseModel, Field, ValidationError, field_validator
 import base64
+
+from app.models.expense import Currency, ExpenseCategory
 
 
 class ExtractRequest(BaseModel):
@@ -21,3 +25,11 @@ class ImageExtractRequest(BaseModel):
             raise ValueError("Error, please upload an image again")
     
         return v
+
+class ApproveRequest(BaseModel):
+       amount: Decimal
+       currency: Currency
+       category: ExpenseCategory
+       vendor: Optional[str]
+       description: Optional[str]
+       date: date

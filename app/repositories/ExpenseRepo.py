@@ -1,8 +1,11 @@
+import uuid
+
 from sqlalchemy import select, text
 
 from app.core.database import AsyncSessionLocal, ExpenseDB
 from app.models.expense import Expense
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.requests import ApproveRequest
 from app.models.response import ExpenseResponse
 
 class ExpenseRepository:
@@ -32,20 +35,27 @@ class ExpenseRepository:
         return expense_response
 
     async def get_needs_review(self) -> list:
+        expenses= []
         stmt= text("SELECT * FROM expenses WHERE needs_review = True")
         response= await self.db.execute(stmt)
-
-        return response.mappings().all()
-            
+    
+        
+        for row in response.mappings().all():
+            result= ExpenseResponse.model_validate(row)
+            expenses.append(result)
+        return expenses
 
     async def get_all(self)-> list:
-
+        expenses= []
         stmt= text("SELECT * FROM expenses")
         response= await self.db.execute(stmt)
 
-        return response.mappings().all()
+        for row in response.mappings().all():
+            result= ExpenseResponse.model_validate(row)
+            expenses.append(result)
+        return expenses
 
-    async def approve(self, expense: ExpenseResponse) -> ExpenseResponse:
+    async def update(self,id: uuid.UUID, expense: ApproveRequest) -> ExpenseResponse:
         stmt= text ("""UPDATE expenses SET 
                                     amount= :amount, 
                                     currency= :currency, 
@@ -57,7 +67,9 @@ class ExpenseRepository:
                                 WHERE id = :id 
                                 RETURNING id, amount, currency, category, vendor, date, description,needs_review, created_at, updated_at""")
 
-        response = await self.db.execute(stmt,expense.model_dump())
+        dict= expense.model_dump()
+        dict["id"]= id
+        response = await self.db.execute(stmt,dict)
 
         await self.db.commit()
 
@@ -66,7 +78,7 @@ class ExpenseRepository:
         
         return expense_response
 
-    async def get_expenseby_id(self, expense_id: str):
+    async def get_expenseby_id(self, expense_id: uuid.UUID):
 
         stmt = text("""
                     SELECT *
