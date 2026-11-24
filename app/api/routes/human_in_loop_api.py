@@ -23,7 +23,9 @@ async def needs_reviews(db: AsyncSession = Depends(get_db)):
 async def approve(id: uuid.UUID , request: ApproveRequest, db: AsyncSession = Depends(get_db)):
 
     db_expense= ExpenseRepository(db)
-
     approved_response= await db_expense.update(id, request)
+
+    if approved_response is None:
+        raise HTTPException("404","This id does not exist")
 
     return {"status": "approved", "response": approved_response}

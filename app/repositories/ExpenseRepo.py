@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 
 from app.core.database import AsyncSessionLocal, ExpenseDB
 from app.models.expense import Expense
@@ -36,7 +36,7 @@ class ExpenseRepository:
 
     async def get_needs_review(self) -> list:
         expenses= []
-        stmt= text("SELECT * FROM expenses WHERE needs_review = True")
+        stmt = select(ExpenseDB).where(ExpenseDB.needs_review == True)
         response= await self.db.execute(stmt)
     
         
@@ -47,47 +47,45 @@ class ExpenseRepository:
 
     async def get_all(self)-> list:
         expenses= []
-        stmt= text("SELECT * FROM expenses")
+        stmt= select(ExpenseDB)
         response= await self.db.execute(stmt)
 
-        for row in response.mappings().all():
+        for row in response.scalars().all():
             result= ExpenseResponse.model_validate(row)
             expenses.append(result)
         return expenses
 
     async def update(self,id: uuid.UUID, expense: ApproveRequest) -> ExpenseResponse:
-        stmt= text ("""UPDATE expenses SET 
-                                    amount= :amount, 
-                                    currency= :currency, 
-                                    category=:category, 
-                                    vendor = :vendor, 
-                                    date = :date, 
-                                    description = :description, 
-                                    needs_review= false 
-                                WHERE id = :id 
-                                RETURNING id, amount, currency, category, vendor, date, description,needs_review, created_at, updated_at""")
-
-        dict= expense.model_dump()
-        dict["id"]= id
-        response = await self.db.execute(stmt,dict)
+        stmt = (
+                    update(ExpenseDB)
+                    .where(ExpenseDB.id == id)
+                    .values(
+                        amount=expense.amount,
+                        currency=expense.currency,
+                        category=expense.category,
+                        vendor=expense.vendor,
+                        date=expense.date,
+                        description=expense.description,
+                        needs_review=False
+                    )
+                    .returning(ExpenseDB)
+                )
+        expense_dict= expense.model_dump()
+        expense_dict["id"]= id
+        response = await self.db.execute(stmt)
 
         await self.db.commit()
 
-        row = response.mappings().first()
+        row = response.scalars().first()
         expense_response = ExpenseResponse.model_validate(row) if row else None
         
         return expense_response
 
     async def get_expenseby_id(self, expense_id: uuid.UUID):
 
-        stmt = text("""
-                    SELECT *
-                    FROM expenses 
-                    WHERE id = :expense_id
-                """)
-
-        response= await self.db.execute(stmt,{"expense_id": expense_id})
-        row = response.mappings().first()  # Extracts the row as a dict-like object (or None)
+        stmt = select(ExpenseDB).where(ExpenseDB.id == expense_id)
+        response= await self.db.execute(stmt)
+        row = response.scalars().first()  # Extracts the row as a dict-like object (or None)
 
         if row is None:
             return None
