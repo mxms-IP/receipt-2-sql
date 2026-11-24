@@ -186,6 +186,8 @@ main.py                         # FastAPI app entry point
 - The Whisper `base` model runs locally on CPU, so the first audio request is
   slow while the model loads.
 
+Retry with error hints: On a schema or format failure, feed the exact validation error back into a retry prompt (with low temperature, such as 0) to repair the output.
+
 ## Author
 
 **Rabia L.** ([mxms-IP](https://github.com/mxms-IP))

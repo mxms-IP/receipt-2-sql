@@ -34,7 +34,6 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 async def get_all_expenses(db: AsyncSession = Depends(get_db)):
 
      db_expense = ExpenseRepository(db)
-
      response = await db_expense.get_all()
 
      return response

@@ -7,7 +7,7 @@ from google.genai import types
 import json
 import logging
 from app.models.expense import Expense
-from app.services.llm.prompts import build_prompt
+from app.services.llm.prompts import build_prompt, build_structural_prompt
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class GeminiClient:
             # Step 1: send raw_input to gemini, await the response
             response = await self.client.aio.models.generate_content(
                             model=settings.PRIMARY_MODEL,
-                            contents=llm_input,
+                            contents= build_structural_prompt(llm_input),
                             config=config
                         )
 

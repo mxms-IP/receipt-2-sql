@@ -26,6 +26,6 @@ async def approve(id: uuid.UUID , request: ApproveRequest, db: AsyncSession = De
     approved_response= await db_expense.update(id, request)
 
     if approved_response is None:
-        raise HTTPException("404","This id does not exist")
+        raise HTTPException(status_code=404, detail="This id does not exist")
 
     return {"status": "approved", "response": approved_response}

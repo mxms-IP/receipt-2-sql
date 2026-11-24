@@ -70,8 +70,7 @@ class ExpenseRepository:
                     )
                     .returning(ExpenseDB)
                 )
-        expense_dict= expense.model_dump()
-        expense_dict["id"]= id
+      
         response = await self.db.execute(stmt)
 
         await self.db.commit()
