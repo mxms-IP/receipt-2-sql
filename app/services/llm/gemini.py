@@ -1,12 +1,13 @@
 # app/services/llm/gemini.py
 
 import base64
+from http.client import HTTPException
 from pydantic import ValidationError
 from google import genai
 from google.genai import types
 import json
 import logging
-from app.models.expense import Expense
+from app.models.expense import Expense, ExpenseBatch
 from app.services.llm.prompts import build_prompt, build_structural_prompt
 from app.core.config import get_settings
 
@@ -24,11 +25,40 @@ class GeminiClient:
 
         return types.GenerateContentConfig(
             response_mime_type="application/json",
+            
             temperature=0.1,
             max_output_tokens=1500,
             system_instruction=build_prompt(input_type)
         )
+
+    def _log_usage(self, response, ) -> None:
+            usage = response.usage_metadata
+            if usage is None:
+                logger.warning(f"No usage metadata returned")
+                return
+            print(
+                f"Tokens -> "
+                f"prompt: {usage.prompt_token_count}, "
+                f"output: {usage.candidates_token_count}, "
+                f"thinking: {usage.thoughts_token_count}, "
+                f"total: {usage.total_token_count}"
+            )
+    @staticmethod
+    def parse_batch(raw_json: dict) -> tuple[list[Expense], list[dict]]:
+            valid = []
+            failed = []
     
+            batch = ExpenseBatch.model_validate(raw_json)   # shape check only
+    
+            for index, item in enumerate(batch.expenses):
+                try:
+                    expense= Expense.model_validate(item)
+                    valid.append(expense)
+                except ValidationError as e:
+                    failed.append({"index": index, "reason": e.errors()[0]["msg"]})
+                    
+    
+            return valid, failed
 
     async def extract_expense(self, raw_input: str) -> Expense:
         # clean the input
@@ -47,14 +77,15 @@ class GeminiClient:
                             config=config
                         )
 
-            # Step 2: convert response.text from string to python dictionary
+            self._log_usage(response)
+           
             raw_json = json.loads(response.text)
-
-            # Step 3: pass dictionary into Expense model for validation
-            expense= Expense(**raw_json)
-
-            # Step 4: return the validated expense
-            return expense
+            print("----------------------Received-------------------------------")
+            print(raw_json)
+            raw_json["expenses"][0]["amount"] = -5.00
+            expense= self.parse_batch(raw_json)
+          
+            return { "valid": expense[0], "failed": expense[1]}
 
         except json.JSONDecodeError as e:
             # log the error message and the first 200 chars of the bad response
@@ -114,4 +145,5 @@ class GeminiClient:
         except Exception as e:
             logger.error(f"Exception occurred: {e}")
             raise ValueError("There was an error in response retrieval")
-                
+
+    

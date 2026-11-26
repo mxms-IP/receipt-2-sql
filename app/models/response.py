@@ -15,6 +15,8 @@ class ExpenseResponse(BaseModel):
     vendor: Optional[str]
     description: Optional[str]
     date: date
+    confidence:  float            
+    raw_input:   str
     needs_review: bool
     created_at: datetime
     updated_at: Optional[datetime]

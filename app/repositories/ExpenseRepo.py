@@ -40,7 +40,7 @@ class ExpenseRepository:
         response= await self.db.execute(stmt)
     
         
-        for row in response.mappings().all():
+        for row in response.scalars().all():
             result= ExpenseResponse.model_validate(row)
             expenses.append(result)
         return expenses

@@ -28,6 +28,10 @@ class Currency(str, Enum):
     GBP = "GBP"
     SAR = "SAR"   
 
+class ExpenseBatch(BaseModel):
+    expenses: list
+
+
 class Expense(BaseModel):
     amount:       Decimal          = Field(gt=0, lt=Decimal("10000000"))    # cap 1 crore
     currency:     Currency         = Field(default=Currency.PKR)
